@@ -1,9 +1,12 @@
 {
   lib,
+  python,
   buildPythonPackage,
   fetchFromGitHub,
   setuptools-scm,
   tkinter,
+  pyopengl,
+  libGL,
 }:
 
 buildPythonPackage rec {
@@ -20,14 +23,24 @@ buildPythonPackage rec {
 
   build-system = [ setuptools-scm ];
 
-  dependencies = [ tkinter ];
+  dependencies = [
+    tkinter
+    pyopengl
+    libGL
+  ];
+
+  postInstall = ''
+    cp -r ${src}/src/tkinter_gl/tk $out/${python.sitePackages}/tkinter_gl/
+    patchelf --set-rpath ${lib.makeLibraryPath [ libGL ]} \
+      $out/${python.sitePackages}/tkinter_gl/tk/*/*/*.so
+  '';
 
   pythonImportsCheck = [ "tkinter_gl" ];
 
   meta = {
     description = "Base class for GL rendering surfaces in tkinter";
-    changelog = "https://github.com/3-manifolds/tkinter_gl/releases/tag/${src.tag}";
     homepage = "https://github.com/3-manifolds/tkinter_gl";
+    changelog = "https://github.com/3-manifolds/tkinter_gl/releases/tag/${src.tag}";
     license = lib.licenses.gpl2Plus;
     maintainers = with lib.maintainers; [ noiioiu ];
   };
